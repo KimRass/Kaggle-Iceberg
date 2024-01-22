@@ -1,0 +1,2 @@
+VAL_RATIO = 0.2
+BATCH_SIZE = 32
