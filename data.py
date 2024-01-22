@@ -13,6 +13,7 @@ sys.path.insert(0, "/Users/jongbeomkim/Desktop/workspace/Kaggle-Iceberg/")
 import numpy as np
 import torch
 from torch.utils.data import Dataset, DataLoader, random_split
+from sklearn.model_selection import train_test_split
 import torchvision.transforms as T
 import albumentations as A
 from albumentations.pytorch import ToTensorV2
@@ -27,7 +28,7 @@ np.set_printoptions(linewidth=70)
 IMG_SIZE = 75
 
 
-def idx_to_img(sample):
+def sample_to_img(sample):
     band1 = np.array(sample["band_1"]).reshape(IMG_SIZE, IMG_SIZE)
     band2 = np.array(sample["band_2"]).reshape(IMG_SIZE, IMG_SIZE)
     band3 = (band1 + band2) / 2
@@ -59,26 +60,58 @@ def get_mean_and_std(images):
     return mean, std
 
 
+def data_to_lists(data, training=False):
+    imgs = list()
+    inc_angles = list()
+    if training:
+        gts = list()
+    else:
+        ids = list()
+
+    for sample in data:
+        img = sample_to_img(sample)
+        imgs.append(img)
+
+        inc_angles.append(sample["inc_angle"])
+        if training:
+            gts.append(sample["is_iceberg"])
+        else:
+            ids.append(sample["id"])
+    if training:
+        return imgs, inc_angles, gts
+    else:
+        return ids, imgs, inc_angles
+train_data, val_data = train_test_split(train_val_data, test_size=0.2)
+train_imgs, train_inc_angles, train_gts = data_to_lists(train_data, training=True)
+val_imgs, val_inc_angles, val_gts = data_to_lists(val_data, training=True)
+test_ids, test_imgs, test_inc_angles = data_to_lists(test_data, training=False)
+
+mean, std = get_mean_and_std(train_imgs)
+
+
 class IcebergDataset(Dataset):
-    def __init__(self, data, training=True):
+    def __init__(self, data, mean, std, training=True):
         super().__init__()
 
         self.training = training
 
         self.imgs = list()
+        self.inc_angles = list()
         if training:
             self.gts = list()
         else:
             self.ids = list()
+
         for sample in data:
-            img = idx_to_img(sample)
+            img = sample_to_img(sample)
             self.imgs.append(img)
+
+            self.inc_angles.append(sample["inc_angle"])
             if training:
                 self.gts.append(sample["is_iceberg"])
             else:
                 self.ids.append(sample["id"])
 
-        mean, std = get_mean_and_std(self.imgs)
         if training:
             self.transformer = A.Compose(
                 [
