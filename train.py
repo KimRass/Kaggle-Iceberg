@@ -17,9 +17,9 @@ from data_aug import apply_cutmix
 def get_args(to_upperse=True):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--n_epochs", type=int, default=60, required=False)
+    parser.add_argument("--n_epochs", type=int, default=100, required=False)
     parser.add_argument("--batch_size", type=int, default=64, required=False)
-    parser.add_argument("--lr", type=float, default=0.0001, required=False)
+    parser.add_argument("--lr", type=float, default=0.0003, required=False)
     # parser.add_argument("--data_dir", type=str, required=True)
     # parser.add_argument("--save_dir", type=str, required=True)
 
@@ -106,7 +106,7 @@ def main():
 
     train_dl, val_dl = get_train_val_dls(
         train_json_path="/Users/jongbeomkim/Documents/datasets/statoil-iceberg-classifier-challenge/train.json",
-        inc_angle_preds_path="/Users/jongbeomkim/Desktop/workspace/DCGAN/resources/inc_angle_pred.npy",
+        inc_angle_preds_path="/Users/jongbeomkim/Desktop/workspace/Kaggle-Iceberg/resources/inc_angle_pred.npy",
         batch_size=args.BATCH_SIZE,
         n_cpus=0,
     )
