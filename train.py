@@ -8,8 +8,8 @@ from sklearn.model_selection import StratifiedKFold
 import argparse
 
 import config
-from utils import set_seed, load_data, to_pil, save_image, get_device
-from data import get_dls
+from utils import set_seed, get_device
+from data import get_train_val_dls
 from model import Classifier
 from data_aug import apply_cutmix
 
@@ -17,10 +17,9 @@ from data_aug import apply_cutmix
 def get_args(to_upperse=True):
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("--seed", type=int, default=123, required=False)
     parser.add_argument("--n_epochs", type=int, default=60, required=False)
     parser.add_argument("--batch_size", type=int, default=64, required=False)
-    # parser.add_argument("--lr", type=float, default=0.0005, required=False)
+    parser.add_argument("--lr", type=float, default=0.0001, required=False)
     # parser.add_argument("--data_dir", type=str, required=True)
     # parser.add_argument("--save_dir", type=str, required=True)
 
@@ -35,12 +34,13 @@ def get_args(to_upperse=True):
     return args
 
 
-def train_single_step(input_image, gt, model, optim, device):
-    input_image = input_image.to(device)
+def train_single_step(image, inc_angle, gt, model, optim, device):
+    image = image.to(device)
+    inc_angle = inc_angle.to(device)
     gt = gt.to(device)
-    image, gt = apply_cutmix(image=input_image, gt=gt, n_classes=2)
+    image, gt = apply_cutmix(image=image, gt=gt, n_classes=2)
 
-    loss = model.get_loss(input_image=input_image, gt=gt)
+    loss = model.get_loss(image=image, inc_angle=inc_angle, gt=gt)
 
     optim.zero_grad()
     loss.backward()
@@ -53,26 +53,31 @@ def validate(dl, model, device):
     model.eval()
 
     cum_loss = 0
-    for input_image, gt in dl:
-        input_image = input_image.to(device)
+    for image, inc_angle, gt in dl:
+        image = image.to(device)
+        inc_angle = inc_angle.to(device)
         gt = gt.to(device)
 
-        loss = model.get_loss(input_image=input_image, gt=gt)
+        loss = model.get_loss(image=image, inc_angle=inc_angle, gt=gt)
         cum_loss += loss.item()
 
     model.train()
     return cum_loss / len(dl)
 
 
-def train(n_epochs, train_dl, val_dl, model, optim, device):
+def train(n_epochs, train_dl, val_dl, model, optim, save_dir, device):
     best_val_loss = math.inf
-    save_dir = "/Users/jongbeomkim/Desktop/workspace/Kaggle-Iceberg/model_params"
     prev_save_path = Path(".pth")
     for epoch in range(1, n_epochs + 1):
         cum_loss = 0
-        for input_image, gt in tqdm(train_dl, leave=False):
+        for image, inc_angle, gt in tqdm(train_dl, leave=False):
             loss = train_single_step(
-                input_image=input_image, gt=gt, model=model, optim=optim, device=device,
+                image=image,
+                inc_angle=inc_angle,
+                gt=gt,
+                model=model,
+                optim=optim,
+                device=device,
             )
             cum_loss += loss.item()
         train_loss = cum_loss / len(train_dl)
@@ -95,20 +100,19 @@ def train(n_epochs, train_dl, val_dl, model, optim, device):
 
 def main():
     args = get_args()
-    set_seed(args.SEED)
+    set_seed(config.SEED)
     # DEVICE = get_device()
     DEVICE = torch.device("cpu")
 
-    train_val_data = load_data("/Users/jongbeomkim/Documents/datasets/statoil-iceberg-classifier-challenge/train.json")
-    train_dl, val_dl = get_dls(
-        train_val_data,
-        val_ratio=config.VAL_RATIO,
+    train_dl, val_dl = get_train_val_dls(
+        train_json_path="/Users/jongbeomkim/Documents/datasets/statoil-iceberg-classifier-challenge/train.json",
+        inc_angle_preds_path="/Users/jongbeomkim/Desktop/workspace/DCGAN/resources/inc_angle_pred.npy",
         batch_size=args.BATCH_SIZE,
         n_cpus=0,
     )
 
     model = Classifier().to(DEVICE)
-    optim = AdamW(model.parameters(), lr=0.0001)
+    optim = AdamW(model.parameters(), lr=args.LR)
 
     train(
         n_epochs=args.N_EPOCHS,
@@ -116,6 +120,7 @@ def main():
         val_dl=val_dl,
         model=model,
         optim=optim,
+        save_dir="/Users/jongbeomkim/Documents/datasets/statoil-iceberg-classifier-challenge/model_params",
         device=DEVICE,
     )
 

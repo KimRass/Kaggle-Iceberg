@@ -1,11 +1,7 @@
-import sys
-
-sys.path.insert(0, "/Users/jongbeomkim/Desktop/workspace/Kaggle-Iceberg/")
-
-import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
+from sklearn.ensemble import RandomForestRegressor
+import numpy as np
 import argparse
+from pathlib import Path
 
 import config
 from utils import set_seed
@@ -33,13 +29,6 @@ def get_args(to_upperse=True):
     return args
 
 
-def save_inc_angle_stripplot(inc_angles, gts, save_path):
-    plt.figure(figsize=(8, 30))
-    sns.stripplot(y=inc_angles, hue=gts, size=5, dodge=False)
-    plt.tight_layout()
-    plt.savefig(save_path)
-
-
 if __name__ == "__main__":
     set_seed(config.SEED)
     args = get_args()
@@ -57,8 +46,8 @@ if __name__ == "__main__":
         imgs=train_val_imgs, inc_angles=train_val_inc_angles, gts=train_val_gts,
     )
 
-    save_inc_angle_stripplot(
-        inc_angles=train_inc_angles,
-        gts=train_gts,
-        save_path=Path(__file__).resolve().parent/"resources/inc_angle.jpg",
-    )
+    model = RandomForestRegressor(random_state=config.SEED)
+    model.fit(np.array(train_gts)[:, None], np.array(train_inc_angles))
+
+    preds = model.predict(np.array(test_gts)[:, None])
+    np.save(Path(args.DATA_DIR)/"inc_angle_pred.npy", preds)
