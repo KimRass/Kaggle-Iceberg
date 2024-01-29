@@ -41,3 +41,7 @@
 - Incidence angle이 특정한 값을 가질 때는 그에 해당하는 이미지의 Label이 반드시 Iceberg가 됨을 볼 수 있습니다.
 - 따라서 Incidence angle을 Feature로서 사용했습니다.
 - VGG16의 Architecture를 조금 변경했습니다. 이미지와 Incidence angle을 합쳐 4개의 채널을 가지는 텐서를 입력으로 받도록 했고 마지막 FC layer의 출력 차원을 2로 변경했습니다.
+## CutMix & Label Smoothing
+- CutMix only: Val loss 0.2000.
+- Label smoothing only: Val loss 0.4390.
+- Both: 정확히 측정해보지는 않았으나 Label smoothing만 사용했을 때와 비슷한 수준.

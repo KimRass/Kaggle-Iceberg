@@ -61,6 +61,12 @@ def to_pil(img):
         return img
 
 
+def show_image(img):
+    copied = img.copy()
+    copied = to_pil(copied)
+    copied.show()
+
+
 def save_image(image, path):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -71,3 +77,14 @@ def plt_to_pil(fig):
     img = mplfig_to_npimage(fig)
     image = to_pil(img)
     return image
+
+
+def print_n_prams(model):
+    n_params = 0
+    n_trainable_params = 0
+    for p in model.parameters():
+        n = p.numel()
+        n_params += n
+        if p.requires_grad:
+            n_trainable_params += n
+    print(f"[ # OF PARAMS: {n_params:,} ][ # OF TRAINABLE PARAMS: {n_trainable_params:,} ]")

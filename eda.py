@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from pathlib import Path
 import argparse
+import pandas as pd
 
 import config
 from utils import set_seed
@@ -38,6 +39,14 @@ def save_inc_angle_stripplot(inc_angles, gts, save_path):
     sns.stripplot(y=inc_angles, hue=gts, size=5, dodge=False)
     plt.tight_layout()
     plt.savefig(save_path)
+
+
+train_val_data = load_data("/Users/jongbeomkim/Documents/datasets/statoil-iceberg-classifier-challenge/train.json")
+train_val_imgs, train_val_inc_angles, train_val_gts = data_to_lists(
+    train_val_data, training=True,
+)
+train_val_df = pd.DataFrame(train_val_gts, columns=["gt"])
+train_val_df.value_counts()
 
 
 if __name__ == "__main__":
