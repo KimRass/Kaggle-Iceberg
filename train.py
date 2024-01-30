@@ -107,8 +107,9 @@ def train(n_epochs, train_dl, val_dl, model, optim, scheduler, label_smoothing, 
 
         if val_loss < best_val_loss:
             best_val_loss = val_loss
-            cur_save_path = str(Path(save_dir)/f"epoch_{epoch}-val_loss_{val_loss:.4f}.pth")
-            torch.save(model.state_dict(), cur_save_path)
+            cur_save_path = Path(save_dir)/f"epoch_{epoch}-val_loss_{val_loss:.4f}.pth"
+            cur_save_path.parent.mkdir(parents=True, exist_ok=True)
+            torch.save(model.state_dict(), str(cur_save_path))
             if prev_save_path.exists():
                 prev_save_path.unlink()
             prev_save_path = Path(cur_save_path)

@@ -99,17 +99,11 @@ class IcebergDataset(Dataset):
                 [
                     A.ShiftScaleRotate(
                         shift_limit=0,
-                        scale_limit=0.2,
+                        scale_limit=0,
                         rotate_limit=180,
                         border_mode=cv2.BORDER_WRAP,
                         p=1,
                     ),
-                    # A.RandomResizedCrop(
-                    #     height=IMG_SIZE,
-                    #     width=IMG_SIZE,
-                    #     scale=(0.9, 1),
-                    #     ratio=(3 / 4, 4 / 3),
-                    # ),
                     A.Normalize(mean=img_mean, std=img_std),
                     ToTensorV2(),
                 ]
