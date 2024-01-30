@@ -45,3 +45,5 @@
 - CutMix only: Val loss 0.2000.
 - Label smoothing only: Val loss 0.4390.
 - Both: 정확히 측정해보지는 않았으나 Label smoothing만 사용했을 때와 비슷한 수준.
+## 3) Adaptive Instance Normalization
+$$\text{AdaIN}(x, y) = \sigma(y)\bigg(\frac{x - \mu(x)}{\sigma(x)}\bigg) + \mu(y)$$

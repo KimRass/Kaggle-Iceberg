@@ -40,7 +40,6 @@ def predict(ids, test_dl, model, device):
         inc_angle = inc_angle.float().to(device)
 
         pred = model(image=image.detach(), inc_angle=inc_angle.detach())
-        # pred = model(image=image.detach(), inc_angle=inc_angle.detach())
         pred = pred.cpu()
         softmax = F.softmax(pred, dim=1)
         preds.extend(list(softmax[:, 1].numpy()))

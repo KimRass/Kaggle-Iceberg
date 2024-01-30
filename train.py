@@ -22,7 +22,7 @@ def get_args(to_upperse=True):
     parser.add_argument("--cutmix", action="store_true", required=False)
     parser.add_argument("--label_smoothing", action="store_true", required=False)
     # parser.add_argument("--data_dir", type=str, required=True)
-    # parser.add_argument("--save_dir", type=str, required=True)
+    parser.add_argument("--save_dir", type=str, required=True)
 
     args = parser.parse_args()
 
@@ -95,7 +95,8 @@ def train(n_epochs, train_dl, val_dl, model, optim, scheduler, label_smoothing, 
         scheduler.step(epoch=epoch)
         train_loss = cum_loss / len(train_dl)
 
-        log = f"""[ {epoch}/{n_epochs} ]"""
+        log = f"[ {epoch}/{n_epochs} ]"
+        log += f"""[ LR: {optim.param_groups[0]["lr"]:5f} ]"""
         log += f"[ Train loss: {train_loss:.4f} ]"
 
         val_loss = validate(
@@ -123,6 +124,7 @@ def main():
         inc_angle_preds_path="/Users/jongbeomkim/Desktop/workspace/Kaggle-Iceberg/resources/inc_angle_pred.npy",
         batch_size=args.BATCH_SIZE,
         n_cpus=0,
+        seed=config.SEED,
     )
     model = ResNet50BasedClassifier(pretrained=True).to(DEVICE)
     optim = AdamW(model.parameters(), lr=args.LR)
@@ -140,7 +142,7 @@ def main():
         optim=optim,
         scheduler=scheduler,
         label_smoothing=args.LABEL_SMOOTHING,
-        save_dir="/Users/jongbeomkim/Documents/datasets/statoil-iceberg-classifier-challenge/model_params/resnet50",
+        save_dir=args.SAVE_DIR,
         cutmix=args.CUTMIX,
         device=DEVICE,
     )

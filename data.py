@@ -1,4 +1,6 @@
 # Source: https://www.kaggle.com/c/statoil-iceberg-classifier-challenge
+# References:
+    # https://github.com/christianversloot/machine-learning-articles/blob/main/how-to-use-k-fold-cross-validation-with-pytorch.md
 
 # "High winds will generate a brighter background. Conversely, low winds will generate a darker background."
 # "The Sentinel-1 satellite is a side looking radar, which means it sees the image area at an angle
@@ -8,7 +10,7 @@
 
 import numpy as np
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, SubsetRandomSampler
 from sklearn.model_selection import train_test_split, StratifiedKFold
 import torchvision.transforms.functional as TF
 import albumentations as A
@@ -95,13 +97,13 @@ class IcebergDataset(Dataset):
         if training:
             self.transformer = A.Compose(
                 [
-                    # A.ShiftScaleRotate(
-                    #     shift_limit=0.3,
-                    #     scale_limit=0,
-                    #     rotate_limit=0,
-                    #     border_mode=cv2.BORDER_WRAP,
-                    #     p=1,
-                    # ),
+                    A.ShiftScaleRotate(
+                        shift_limit=0,
+                        scale_limit=0.2,
+                        rotate_limit=180,
+                        border_mode=cv2.BORDER_WRAP,
+                        p=1,
+                    ),
                     # A.RandomResizedCrop(
                     #     height=IMG_SIZE,
                     #     width=IMG_SIZE,
@@ -197,7 +199,7 @@ def fill_missing_inc_angles(inc_angles, preds_path):
     return list(new_inc_angles.astype(np.float32))
 
 
-def get_train_val_dls(train_json_path, inc_angle_preds_path, batch_size, n_cpus):
+def get_train_val_dls(train_json_path, inc_angle_preds_path, batch_size, n_cpus, seed):
     train_val_data = load_data(train_json_path)
     train_val_imgs, train_val_inc_angles, train_val_gts = data_to_lists(
         train_val_data, training=True,
@@ -206,7 +208,7 @@ def get_train_val_dls(train_json_path, inc_angle_preds_path, batch_size, n_cpus)
         inc_angles=train_val_inc_angles, preds_path=inc_angle_preds_path,
     )
 
-    (  
+    (
         train_imgs,
         val_imgs,
         train_inc_angles,
@@ -214,7 +216,12 @@ def get_train_val_dls(train_json_path, inc_angle_preds_path, batch_size, n_cpus)
         train_gts,
         val_gts,
     ) = train_test_split(
-        train_val_imgs, train_val_inc_angles, train_val_gts, test_size=config.VAL_RATIO,
+        train_val_imgs,
+        train_val_inc_angles,
+        train_val_gts,
+        test_size=config.VAL_RATIO,
+        random_state=seed,
+        shuffle=True,
     )
 
     img_mean, img_std = get_mean_and_std(train_imgs)
@@ -311,3 +318,12 @@ if __name__ == "__main__":
     )
     for _ in range(10):
         to_pil(a(image=img)["image"]).show()
+
+    x = list(range(100))
+    y = [0, 1, 2, 3] * 25
+    kfold = StratifiedKFold(n_splits=5, shuffle=True, random_state=0)
+    folds = kfold.split(x, y)
+    for train_indices, val_indices in folds:
+        np.array(x)[a]
+        np.array(y)[b]
+        break

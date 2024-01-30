@@ -2,8 +2,6 @@
     # https://towardsdatascience.com/getting-started-with-pytorch-image-models-timm-a-practitioners-guide-4e77b4bf9055
 
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from torch.optim import AdamW
 from timm.scheduler import CosineLRScheduler
 import matplotlib.pyplot as plt
